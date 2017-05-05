@@ -1,0 +1,16 @@
+{
+  "name": "WPUI",
+  "version": "1.0.0",
+  "description": "For HOPPS by 2L2Q",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "2L2Q",
+  "dependencies": {
+    "ar-drone": "*"
+  },
+  "devDependencies": {
+    "electron": "~1.6.2"
+  }
+}

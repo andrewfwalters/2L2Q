@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WPUI</title>
+  <link
+  href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+  crossorigin="anonymous">
+  <script
+  src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+  integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+  crossorigin="anonymous"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+  <script src="http://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="./wpui.css"/>
+  <script>require("./wpui.js");</script>
+</head>
+<body>
+<div class="container-fluid">
+ 	<div id="full-size">
+		<body id="WPUIBody" onload = "loadWPUI()">
+			<img src="/publicImages/UAV_Controls.PNG" id="UAVImg" alt="UAV Controls" style="display: none;">
+			<img src="/publicImages/UGV_Controls.PNG" id="UGVImg" alt="UGV Controls" style="display: none;">
+			<div class="modal" id='controlDisplay'>
+				<span class="close">&times;</span>
+				<img class="modal-content" id="controlImg">
+				<div id="controlCaption"></div>
+			</div>
+			<button style="font-size:22px" onclick="uavFlash()">UAV LIGHTS</button>
+		<div id="mission">
+			<div class="start">
+				<input type="button" class="btn btn-default" id="startStop" value="START MISSION">
+				<span>  MISSION TIME:  </span><span><time>00:00:00<time></span>
+				<div class="dropdown" style="display: inline">
+	            			<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-default pull-right" data-target="#">
+	                			Settings <span class="caret"></span>
+	            			</a>
+	    				<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
+	              				<li><a id="viewData">View Previous Mission Data</a></li>
+	              				<li><a id="UAVControlDisplay">View UAV Controls</a></li>
+	              				<li><a id="UGVControlDisplay">View UGV Controls</a></li>
+	              				<li class="dropdown-submenu">
+	                				<a tabindex="-1" id="flightPath">Change Flight Path...</a>
+	                				<ul class="dropdown-menu">
+	                  					<li><a tabindex="-1" id="manualPath">Manual</a></li>
+	                  					<li><a tabindex="-1" id="fig8Path">Figure Eight</a></li>
+	                  					<li><a tabindex="-1" id="perimSweepPath">Perimeter Sweep</a></li>
+	                  					<li><a tabindex="-1" id="followUGVPath">Follow UGV</a></li>
+	                  					<li><a tabindex="-1" id="centerPath">Center of Map</a></li>
+	                				</ul>
+	              				</li>
+	            			</ul>
+	        		</div>
+	  		</div> <!-- start mission-->
+	  		<div id="top">
+	  			<div class="col-sm-6 col-md-6 col-lg-6 fullscreen" id="uav">
+	      				<h2>
+	      					<span id="UAVLabel" style="font-size:32px">UAV</span>
+						<button class="btn btn-default autofocus" type="button" id="UAVFrontCamera">Front Camera</button>
+						<button class="btn btn-default autofocus" type="button" id="UAVBottomCamera">Bottom Camera</button>
+	      					<button class="btn btn-default" type="button" id="UAVThermal">Thermal</button>
+	      					<span id="UAVControlLabel" style="font-size:18px">Controlling</span>
+	      					<span id="UAVInFlightLabel" style="font-size:18px">In-Flight</span>
+	      					<span id="UAVAutoPathLabel" style="font-size:18px">Autonomous Path</span>
+	      				</h2>
+					<div class="alert" style="display: none;" id="alertWarningUAV">
+						<span class="closebtn" id="alertCloseUAV">&times;</span>
+						<span id="alertTextUAV">Warning!<span>
+					</div>
+					<img src="https://s3.amazonaws.com/twolegittwoquit/images/placeholders/video.jpg"/>
+	      				<div class="col-sm-12 col-md-12 col-lg-12 telemetry">
+	        				<div class="dropdown">
+	          					<button class="btn btn-defualt dropdown-toggle" type="button" id="UAVTelem" data-toggle="dropdown">Telemetry
+	            					<span class="caret"></span></button>
+	            					<ul class="dropdown-menu" role="menu" aria-labelledby="UAVTelem">
+	              						<li role="presentation"><a role="menuitem" id="UAVBatteryOption" tabindex="-1">Battery (mins)</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UAVTempOption" tabindex="-1">Temperature</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UAVAltitudeOption" tabindex="-1">Altitude</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UAVSpeedOption" tabindex="-1">Speed</a></li>
+	            					</ul>
+        						<span id='UAVBattery'>  Battery: <span id='UAVBatteryPercentField'>UNK</span> %  <span id='UAVBatteryMin'><span id='UAVBatteryMinField'>UNK</span> min(s)  </span></span>
+	        					<span id='UAVTemp'>|  Temp: <span id='UAVTempField'>UNK</span> &deg;F  </span>
+	        					<span id='UAVAltitude'>|  Altitude: <span id='UAVAltitudeField'>UNK</span> ft  </span>
+	        					<span id='UAVSpeed'>|  Speed: <span id='UAVSpeedField'>UNK</span> mph  </span>  
+      						</div>
+      					</div> <!-- telemetry -->
+      					<input class="btn btn-default pull-right" type="button" id="UAVShutdown" value="Start UAV">
+	    			</div> <!-- uav -->
+	    			<div class="col-sm-6 col-md-6 col-lg-6 fullscreen" id="ugv">
+	      				<h2>
+	      					<span id="UGVLabel" style="font-size:32px">UGV</span>
+	      					<button class="btn btn-default" type="button" id="UGVForwardCamera">Forward Camera</button>
+	      					<button class="btn btn-default" type="button" id="UGVRearCamera">Rear Camera</button>
+	      					<span id="UGVControlLabel" style="font-size:18px">Controlling</span>
+	      				</h2>
+					<div class="alert" style="display: none;" id="alertWarningUGV">
+						<span class="closebtn" id="alertCloseUGV">&times;</span>
+						<span id="alertTextUGV">Warning!<span>
+					</div>
+					<img src="https://s3.amazonaws.com/twolegittwoquit/images/placeholders/video.jpg"/>
+	      				<div class="col-sm-12 col-md-12 col-lg-12 telemetry">
+	        				<div class="dropdown">
+	          					<button class="btn btn-default dropdown-toggle" type="button" id="UGVTelem" data-toggle="dropdown">Telemetry
+	            					<span class="caret"></span></button>
+	            					<ul class="dropdown-menu" role="menu" aria-labelledby="UGVTelem">
+	              						<li role="presentation"><a role="menuitem" id="UGVBatteryOption" tabindex="-1">Battery (mins)</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UGVTempOption" tabindex="-1">Temperature</a></li>
+	              						<!--<li role="presentation"><a role="menuitem" id="UGVAnimalOption" tabindex="-1">Animal Count</a></li>-->
+	              						<li role="presentation"><a role="menuitem" id="UGVWheelOption" tabindex="-1">Wheels Angle</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UGVCraneOption" tabindex="-1">Crane Angle</a></li>
+	              						<li role="presentation"><a role="menuitem" id="UGVSpeedOption" tabindex="-1">Speed</a></li>
+        	    					</ul>
+        						<span id='UGVBattery'>  Battery: <span id='UGVBatteryPercentField'>UNK</span> %  <span id='UGVBatteryMin'><span id='UGVBatteryMinField'>UNK</span> min(s)  </span></span>
+        						<span id='UGVTemp'>|  Temp: <span id='UGVTempField'>UNK</span> &deg;F  </span>
+							<!--<span id='UGVAnimalCount'>|  Animals Onboard: <span id='UGVAnimalCountField'>UNK</span>  </span>-->
+        						<span id='UGVWheelAngle'>|  Wheels: <span id='UGVWheelAngleField'>UNK</span> &deg;  </span>
+        						<span id='UGVCraneAngle'>|  Crane: <span id='UGVCraneAngleField'>UNK</span> &deg;  </span>
+        						<span id='UGVSpeed'>|  Speed: <span id='UGVSpeedField'>UNK</span> mph  </span>
+        					</div>
+      					</div> <!-- telemetry -->
+      				<input class="btn btn-default pull-right" type="button" id="UGVShutdown" value="Start UGV">
+    			</div> <!-- ugv -->
+    		</div> <!-- top -->
+    			<div id="bottom">
+				<div class="col-sm-12 col-md-12 col-lg-12 fullscreen" id="map">
+        				<div style="display: inline-block;">
+						<div><h2>&ensp;MAP</h2></div>
+						<div>
+							<span id='animalBucketText'>Animal Marker</span><br>
+							<span>&ensp;</span><span>&ensp;</span><span>&ensp;</span><img src="https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/marker_animal.png" id="animalBucket" style= "width: 40px; height: 65px;"><br><br>
+							<span>&ensp;</span><span id='fireBucketText'>Fire Marker</span><br>
+							<span>&ensp;</span><span>&ensp;</span><span>&ensp;</span><img src="https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/marker_fire.png" id="fireBucket" style= "width: 40px; height: 52px;"><br><br>
+							<span id='debrisBucketText'>Debris Marker</span><br>
+							<span>&ensp;</span><span>&ensp;</span><span>&ensp;</span><img src="https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/marker_debris.png" id="debrisBucket" style= "width: 40px; height: 40px;"><br><br>
+							<span id='blockerBucketText'>Blocker Marker</span><br>
+							<span>&ensp;</span><span>&ensp;</span><span>&ensp;</span><img src="https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/marker_blocker.png" id="blockerBucket" style= "width: 40px; height: 40px;">
+						</div>
+					</div>
+					<div style="display: inline-block;">
+      						<div id="zoomap" style="height: 375px; width: 925px;"></div><!-- map, size 300,740 is perfect fit -->
+					</div>
+					<div style="display: inline-block;">
+						<span id="deleteMarker">Delete Marker</span><br>
+							<span>&ensp;</span><span>&ensp;</span><img src="https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/trashcan.png" id="trashcan" style= "width: 62.4px; height: 67.5px;"><br><br>
+						<span id="livingStatus">Change Living Status</span><br>
+	      					<button class="btn btn-default" type="button" id="changeStatus">Change Status</button><br>
+						<span>&ensp;&ensp;</span><span id="onboardMarker">Load UGV</span><br>
+	      					<button class="btn btn-default" type="button" id="loadAnimal">Load Animal</button><br>
+						<span><b>Animal's Onboard:</b></span><br>
+						<span id="animalOnboard1" style="visibility: hidden;"></span><br>
+						<span id="animalOnboard2" style="visibility: hidden;"></span><br>
+						<span id="animalOnboard3" style="visibility: hidden;"></span><br>
+	      					<button class="btn btn-default" type="button" id="unloadAnimal">Unload Animals</button><br>
+						<span>&ensp;</span><br>
+					<div>
+
+      				</div>
+    			</div> <!-- bottom -->
+				<script>
+					var zoomap = L.map('zoomap',{
+					//	zoomControl:false, //removing the + - zoom button
+						crs:L.CRS.Simple
+					});
+					var zoomapbounds = [[0,0],[75,185]]; //note that coodinates are in y,x order not x,y
+					var maxbounds = [[-30,-40],[105,225]]; //gives us a little room on the outside to work with
+					var zoomapimage = L.imageOverlay('/publicImages/SD_ZooMap.PNG',zoomapbounds).addTo(zoomap);
+					zoomap.fitBounds(zoomapbounds); //auto fits map
+					//zoomap.dragging.disable(); //disables click and drag of map
+					zoomap.scrollWheelZoom.disable(); //disables the mouse scroll wheel
+					zoomap.doubleClickZoom.disable(); //disables dbl click zoom
+					zoomap.setMaxBounds(maxbounds);
+					zoomap.on('drag',function(){
+						zoomap.panInsideBounds(maxbounds, {animate: false});
+					});
+					var markers = L.layerGroup().addTo(zoomap);
+					var uavMarkers = L.layerGroup().addTo(zoomap);
+					var ugvMarkers = L.layerGroup().addTo(zoomap);
+					var priorityMarkers = L.layerGroup().addTo(zoomap);
+					
+					
+					L.NumberedDivIcon = L.Icon.extend({
+						options: {
+							iconUrl: "https://s3.amazonaws.com/twolegittwoquit/images/zoomap_images/marker_animal.png",	
+							number: '',
+							shadowUrl: null,
+							iconSize: new L.Point(0,0),
+							iconAnchor: new L.Point(13,41),
+							popupAnchor: new L.Point(0,-33),
+							className: 'leaflet-div-icon'
+							},
+						
+						createIcon: function(){
+							var div = document.createElement('div');
+							var img = this._createImg(this.options['iconUrl']);
+							var numdiv = document.createElement('div');
+							numdiv.setAttribute("class","number");
+							numdiv.innerHTML = this.options['number'] || '';
+							div.appendChild(img);
+							div.appendChild(numdiv);
+							this._setIconStyles(div,'icon');
+							return div;
+						},
+						
+						createShadow: function(){
+							return null;
+						}
+					});
+				</script>
+  		</body>
+  	</div> <!-- full-size-->
+  </div> <!-- container -->
+</body>
+<script>
+  require('ar-drone')
+  function uavFlash() {
+    var arDrone = require('ar-drone');
+    var client  = arDrone.createClient();
+    client.animateLeds('blinkRed', 10, 5);
+    document.getElementById("LightIndicator").innerHTML = "Lights On";
+  }
+</script>
+</html>
